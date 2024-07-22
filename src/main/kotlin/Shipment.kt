@@ -3,7 +3,8 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-class Shipment(
+// Base Shipment class
+open class Shipment(
     val id: String,
     var status: String,
     var location: String,
@@ -23,13 +24,13 @@ class Shipment(
         observers.remove(observer)
     }
 
-    private fun notifyObservers() {
+    protected fun notifyObservers() {
         println("Notifying observers of shipment $id")
         observers.forEach { it(this) }
     }
 
     // Method to add an update and notify observers
-    fun addUpdate(update: ShippingUpdate) {
+    open fun addUpdate(update: ShippingUpdate) {
         status = update.newStatus
         updateHistory.add("Shipment went from ${update.previousStatus} to ${update.newStatus} on ${convertLongToDateTime(update.updateTimeStamp)}")
 
@@ -52,9 +53,100 @@ class Shipment(
         notifyObservers()
     }
 
-        fun convertLongToDateTime(timestamp: Long): LocalDateTime {
-            val instant = Instant.ofEpochMilli(timestamp)
-            val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
-            return dateTime
+    protected fun convertLongToDateTime(timestamp: Long): LocalDateTime {
+        val instant = Instant.ofEpochMilli(timestamp)
+        val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+        return dateTime
+    }
+}
+
+// Standard Shipment class
+class StandardShipment(
+    id: String,
+    status: String,
+    location: String,
+    expectedDeliveryDate: LocalDateTime,
+    notes: MutableList<String> = mutableStateListOf(),
+    updateHistory: MutableList<String> = mutableStateListOf()
+) : Shipment(id, status, location, expectedDeliveryDate, notes, updateHistory)
+
+// Express Shipment class
+class ExpressShipment(
+    id: String,
+    status: String,
+    location: String,
+    expectedDeliveryDate: LocalDateTime,
+    notes: MutableList<String> = mutableStateListOf(),
+    updateHistory: MutableList<String> = mutableStateListOf()
+) : Shipment(id, status, location, expectedDeliveryDate, notes, updateHistory) {
+    init {
+        validateDeliveryDate()
+    }
+
+    override fun addUpdate(update: ShippingUpdate) {
+        super.addUpdate(update)
+        validateDeliveryDate()
+    }
+
+    private fun validateDeliveryDate() {
+        val createdDate = convertLongToDateTime(updateHistory.first().split(" ")[8].toLong())
+        if (expectedDeliveryDate.isAfter(createdDate.plusDays(3))) {
+            status = "Abnormal: Express shipment expected delivery date is more than 3 days"
+            notifyObservers()
+        }
+    }
+}
+
+// Overnight Shipment class
+class OvernightShipment(
+    id: String,
+    status: String,
+    location: String,
+    expectedDeliveryDate: LocalDateTime,
+    notes: MutableList<String> = mutableStateListOf(),
+    updateHistory: MutableList<String> = mutableStateListOf()
+) : Shipment(id, status, location, expectedDeliveryDate, notes, updateHistory) {
+    init {
+        validateDeliveryDate()
+    }
+
+    override fun addUpdate(update: ShippingUpdate) {
+        super.addUpdate(update)
+        validateDeliveryDate()
+    }
+
+    private fun validateDeliveryDate() {
+        val createdDate = convertLongToDateTime(updateHistory.first().split(" ")[8].toLong())
+        if (expectedDeliveryDate.isAfter(createdDate.plusDays(1))) {
+            status = "Abnormal: Overnight shipment expected delivery date is more than 1 day"
+            notifyObservers()
+        }
+    }
+}
+
+// Bulk Shipment class
+class BulkShipment(
+    id: String,
+    status: String,
+    location: String,
+    expectedDeliveryDate: LocalDateTime,
+    notes: MutableList<String> = mutableStateListOf(),
+    updateHistory: MutableList<String> = mutableStateListOf()
+) : Shipment(id, status, location, expectedDeliveryDate, notes, updateHistory) {
+    init {
+        validateDeliveryDate()
+    }
+
+    override fun addUpdate(update: ShippingUpdate) {
+        super.addUpdate(update)
+        validateDeliveryDate()
+    }
+
+    private fun validateDeliveryDate() {
+        val createdDate = convertLongToDateTime(updateHistory.first().split(" ")[8].toLong())
+        if (expectedDeliveryDate.isBefore(createdDate.plusDays(3))) {
+            status = "Abnormal: Bulk shipment expected delivery date is less than 3 days"
+            notifyObservers()
+        }
     }
 }

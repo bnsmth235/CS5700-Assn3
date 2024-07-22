@@ -1,11 +1,8 @@
-import java.io.File
-import kotlinx.coroutines.*
-import java.nio.file.Paths
 import java.time.LocalDateTime
+import kotlin.time.Duration.Companion.milliseconds
 
-open class TrackingSimulator {
+object TrackingSimulator {
     private val shipments = mutableListOf<Shipment>()
-    private var simulationJob: Job? = null
 
     fun findShipment(id: String): Shipment? = shipments.find { it.id == id }
 
@@ -13,53 +10,21 @@ open class TrackingSimulator {
         shipments.add(shipment)
     }
 
-    fun runSimulation(filename: String) {
-        // Ensure only one simulation is running at a time
-        if (simulationJob?.isActive == true) {
-            println("Simulation is already running.")
-            return
-        }
+    fun processUpdate(updateRequest: ShipmentUpdateRequest) {
+        var shipment = findShipment(updateRequest.id)
 
-        val path = Paths.get("").toAbsolutePath().toString() + "/src/main/resources/" + filename
-
-        simulationJob = GlobalScope.launch {
-            try {
-                File(path).useLines { lines ->
-                    lines.forEach { line ->
-                        processLine(line)
-                        delay(1000) // Process one line per second
-                    }
-                }
-                println("Simulation completed.")
-            } catch (e: Exception) {
-                println("Error in simulation: ${e.message}")
-            }
-        }
-    }
-
-    fun stopSimulation() {
-        simulationJob?.cancel()
-    }
-
-    private fun processLine(line: String) {
-        val lineParsed = parseLine(line)
-        val type = lineParsed[0]
-        val id = lineParsed[1]
-        val timestamp = lineParsed[2]
-        val info = lineParsed.getOrNull(3) ?: ""
-
-        var shipment = findShipment(id)
-
-        if (shipment == null) {
+        if(shipment == null) {
             // Default values for a new shipment
-            var location = "N/A"
-            var deliveryDate = LocalDateTime.MIN
+            val location = "N/A"
+            val deliveryDate = LocalDateTime.MIN
             val notes = mutableListOf<String>()
             val shippingUpdates = mutableListOf<String>()
 
+            shippingUpdates.add(CreatedUpdate(updateRequest.timestamp).toString())
+
             addShipment(
                 Shipment(
-                    id,
+                    updateRequest.id,
                     "N/A",
                     location,
                     deliveryDate,
@@ -68,27 +33,22 @@ open class TrackingSimulator {
                 )
             )
 
-            shipment = findShipment(id)
+
         }
 
-        var oldStatus = shipment?.status ?: "N/A"
+        shipment = findShipment(updateRequest.id)
 
-        val shipmentUpdate = when (type) {
-            "created" -> CreatedUpdate(timestamp.toLong())
-            "shipped" -> ShippedUpdate(timestamp.toLong(), oldStatus, info.toLong())
-            "location" -> LocationUpdate(timestamp.toLong(), oldStatus, info)
-            "delivered" -> DeliveredUpdate(timestamp.toLong(), oldStatus)
-            "delayed" -> DelayedUpdate(timestamp.toLong(), oldStatus, info.toLong())
-            "lost" -> LostUpdate(timestamp.toLong(), oldStatus)
-            "canceled" -> CanceledUpdate(timestamp.toLong(), oldStatus)
-            "noteadded" -> NoteAddedUpdate(timestamp.toLong(), oldStatus, info)
-            else -> throw IllegalArgumentException("Invalid shipment update type: $type")
+        val update = when (updateRequest.type) {
+            "shipped" -> ShippedUpdate(updateRequest.timestamp, shipment!!.status, updateRequest.info!!.toLong())
+            "location" -> LocationUpdate(updateRequest.timestamp, shipment!!.status, updateRequest.info!!)
+            "delivered" -> DeliveredUpdate(updateRequest.timestamp, shipment!!.status)
+            "delayed" -> DelayedUpdate(updateRequest.timestamp, shipment!!.status, updateRequest.info!!.toLong())
+            "lost" -> LostUpdate(updateRequest.timestamp, shipment!!.status)
+            "canceled" -> CanceledUpdate(updateRequest.timestamp, shipment!!.status)
+            "note added" -> NoteAddedUpdate(updateRequest.timestamp, shipment!!.status, updateRequest.info!!)
+
+            else -> null
         }
-
-        shipment?.addUpdate(shipmentUpdate)
-    }
-
-    private fun parseLine(line: String): List<String> {
-        return line.split(",")
+        shipment?.addUpdate(update?: return)
     }
 }
