@@ -14,7 +14,7 @@ class TrackingSimulator(private var shipmentFactory: ShipmentFactory){
         var shipment = findShipment(updateRequest.id)
 
         if(shipment == null) {
-            shipmentFactory.createShipment(updateRequest, CreatedUpdate(updateRequest.timestamp, "created")).also {
+            shipmentFactory.createShipment(updateRequest, CreatedUpdate(updateRequest.timestamp, updateRequest.info!!)).also {
                 addShipment(it)
             }
         }
@@ -33,5 +33,6 @@ class TrackingSimulator(private var shipmentFactory: ShipmentFactory){
             else -> null
         }
         shipment?.addUpdate(update?: return)
+        println("Shipment updated: ${shipment?.id}")
     }
 }

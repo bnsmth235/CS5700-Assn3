@@ -37,28 +37,46 @@ class TrackingClient {
 
         LaunchedEffect(triggerCoroutine) {
             if (triggerCoroutine) {
-                val result = client.post("http://localhost:8080/shipment/update") {
-                    contentType(ContentType.Application.Json)
-                    setBody(ShipmentUpdateRequest(
-                        id = "1",
-                        type = "shipped",
-                        timestamp = System.currentTimeMillis(),
-                        info = "123"
-                    ))
-                }.bodyAsText()
-                response = result
+                val parts = input.split(",").map { it.trim() }
+                if (parts.size >= 3) {
+                    try {
+                        val id = parts[0]
+                        val type = parts[1]
+                        val timestamp = parts[2].toLong()
+                        val info = parts.getOrNull(3) // Optional
+
+                        val result = client.post("http://localhost:8080/shipment/update") {
+                            contentType(ContentType.Application.Json)
+                            setBody(ShipmentUpdateRequest(
+                                id = id,
+                                type = type,
+                                timestamp = timestamp,
+                                info = info
+                            ))
+                        }.bodyAsText()
+                        response = result
+                    } catch (e: Exception) {
+                        response = "Error parsing input or sending request: ${e.message}"
+                    }
+                } else {
+                    response = "Invalid input format. Please use: id, type, timestamp, info(optional)"
+                }
                 triggerCoroutine = false // Reset the trigger
+                input = "" // Clear the input
             }
         }
 
         Column(Modifier.padding(16.dp)) {
+            Text("Enter update information as: id, type, timestamp, info(optional)")
             TextField(
                 value = input,
                 onValueChange = { input = it },
                 label = { Text("Enter Shipment Update") }
             )
             Spacer(Modifier.height(8.dp))
-            Button(onClick = { triggerCoroutine = true }) {
+            Button(onClick = {
+                triggerCoroutine = true
+            }) {
                 Text("Send Update")
             }
             Spacer(Modifier.height(8.dp))

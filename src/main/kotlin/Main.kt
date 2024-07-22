@@ -21,9 +21,9 @@ fun TrackingApp(trackingClient: TrackingClient) {
 fun main() = application {
     val applicationScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    val simulator = TrackingSimulator()
     val shipmentFactory = ShipmentFactory()
-    val trackingServer = TrackingServer(shipmentFactory, simulator)
+    val simulator = TrackingSimulator(shipmentFactory)
+    val trackingServer = TrackingServer(simulator)
     val trackingClient = TrackingClient()
 
     applicationScope.launch {
