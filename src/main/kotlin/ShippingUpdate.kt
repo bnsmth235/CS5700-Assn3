@@ -4,10 +4,12 @@ interface ShippingUpdate {
     val updateTimeStamp: Long
 }
 
-class CreatedUpdate(updateTimeStampText: Long) : ShippingUpdate {
+class CreatedUpdate(updateTimeStampText: Long, shipmentType: String) : ShippingUpdate {
     override val newStatus: String = "created"
     override val updateTimeStamp: Long = updateTimeStampText
     override val previousStatus: String = "N/A"
+
+    val shipmentType: String = shipmentType
 }
 
 class ShippedUpdate(updateTimeStampText: Long, previousStatusText: String, expectedDeliveryDateText: Long) : ShippingUpdate {

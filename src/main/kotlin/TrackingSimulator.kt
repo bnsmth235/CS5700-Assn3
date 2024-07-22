@@ -1,7 +1,7 @@
 import java.time.LocalDateTime
 import kotlin.time.Duration.Companion.milliseconds
 
-class TrackingSimulator{
+class TrackingSimulator(private var shipmentFactory: ShipmentFactory){
     private val shipments = mutableListOf<Shipment>()
 
     fun findShipment(id: String): Shipment? = shipments.find { it.id == id }
@@ -14,26 +14,9 @@ class TrackingSimulator{
         var shipment = findShipment(updateRequest.id)
 
         if(shipment == null) {
-            // Default values for a new shipment
-            val location = "N/A"
-            val deliveryDate = LocalDateTime.MIN
-            val notes = mutableListOf<String>()
-            val shippingUpdates = mutableListOf<String>()
-
-            shippingUpdates.add(CreatedUpdate(updateRequest.timestamp).toString())
-
-            addShipment(
-                Shipment(
-                    updateRequest.id,
-                    "N/A",
-                    location,
-                    deliveryDate,
-                    notes,
-                    shippingUpdates
-                )
-            )
-
-
+            shipmentFactory.createShipment(updateRequest, CreatedUpdate(updateRequest.timestamp, "created")).also {
+                addShipment(it)
+            }
         }
 
         shipment = findShipment(updateRequest.id)

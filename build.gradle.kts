@@ -2,6 +2,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     kotlin("jvm")
+    kotlin("plugin.serialization") version "2.0.0"
     id("org.jetbrains.compose")
     id("org.jetbrains.kotlin.plugin.compose")
 }
@@ -33,6 +34,7 @@ dependencies {
     implementation("io.ktor:ktor-client-logging:2.3.12")
     implementation("io.ktor:ktor-client-serialization:2.3.12")
     implementation("io.ktor:ktor-client-content-negotiation:2.3.12")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
 
 }
 
