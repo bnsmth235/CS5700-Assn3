@@ -33,6 +33,23 @@ class TrackingClient {
 
         var input by remember { mutableStateOf("") }
         var response by remember { mutableStateOf("") }
+        var triggerCoroutine by remember { mutableStateOf(false) }
+
+        LaunchedEffect(triggerCoroutine) {
+            if (triggerCoroutine) {
+                val result = client.post("http://localhost:8080/shipment/update") {
+                    contentType(ContentType.Application.Json)
+                    setBody(ShipmentUpdateRequest(
+                        id = "1",
+                        type = "shipped",
+                        timestamp = System.currentTimeMillis(),
+                        info = "123"
+                    ))
+                }.bodyAsText()
+                response = result
+                triggerCoroutine = false // Reset the trigger
+            }
+        }
 
         Column(Modifier.padding(16.dp)) {
             TextField(
@@ -41,20 +58,7 @@ class TrackingClient {
                 label = { Text("Enter Shipment Update") }
             )
             Spacer(Modifier.height(8.dp))
-            Button(onClick = {
-                LaunchedEffect(Unit) {
-                    val result = client.post("http://localhost:8080/shipment/update") {
-                        contentType(ContentType.Application.Json)
-                        setBody(ShipmentUpdateRequest(
-                            id = "1",
-                            type = "shipped",
-                            timestamp = System.currentTimeMillis(),
-                            info = "123"
-                        ))
-                    }.bodyAsText()
-                    response = result
-                }
-            }) {
+            Button(onClick = { triggerCoroutine = true }) {
                 Text("Send Update")
             }
             Spacer(Modifier.height(8.dp))

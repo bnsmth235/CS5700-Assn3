@@ -1,7 +1,7 @@
 import java.time.LocalDateTime
 import kotlin.time.Duration.Companion.milliseconds
 
-object TrackingSimulator {
+class TrackingSimulator{
     private val shipments = mutableListOf<Shipment>()
 
     fun findShipment(id: String): Shipment? = shipments.find { it.id == id }

@@ -5,24 +5,42 @@ import androidx.compose.ui.window.application
 import kotlinx.coroutines.*
 
 @Composable
-fun App(simulator: TrackingSimulator) {
+fun SimulatorApp(simulator: TrackingSimulator) {
     MaterialTheme {
         UserInterface(simulator).createInterface()
     }
 }
 
-fun main() = application {
-    val simulator = TrackingSimulator()
+@Composable
+fun TrackingApp(trackingClient: TrackingClient) {
+    MaterialTheme {
+        trackingClient.run()
+    }
+}
 
-    // Launch the simulation in a coroutine scope
-    GlobalScope.launch {
-        simulator.runSimulation("test.txt")
+fun main() = application {
+    val applicationScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
+    val simulator = TrackingSimulator()
+    val shipmentFactory = ShipmentFactory()
+    val trackingServer = TrackingServer(shipmentFactory, simulator)
+    val trackingClient = TrackingClient()
+
+    applicationScope.launch {
+        trackingServer.start()
     }
 
     Window(onCloseRequest = {
-        simulator.stopSimulation()
+        applicationScope.cancel() // Cancel the scope to clean up coroutines
         exitApplication()
     }) {
-        App(simulator)
+        SimulatorApp(simulator) // This is now correctly placed within a composable context
+    }
+
+    Window(onCloseRequest = {
+        applicationScope.cancel() // Ensure to cancel the scope here as well if windows close independently
+        exitApplication()
+    }) {
+        TrackingApp(trackingClient) // This is now correctly placed within a composable context
     }
 }

@@ -11,7 +11,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
 
-class TrackingServer(val shipmentFactory: ShipmentFactory, val trackingSimulator: TrackingSimulator) {
+class TrackingServer(private val shipmentFactory: ShipmentFactory, private val trackingSimulator: TrackingSimulator) {
 
     fun start() {
         embeddedServer(Netty, port = 8080) {
