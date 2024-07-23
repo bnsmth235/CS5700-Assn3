@@ -21,7 +21,7 @@ class TrackingServer(private val trackingSimulator: TrackingSimulator) {
             routing {
                 post("/shipment/update") {
                     val shipmentUpdate = call.receive<ShipmentUpdateRequest>()
-                    print("Server received update: $shipmentUpdate")
+                    println("Server received update: $shipmentUpdate")
                     trackingSimulator.processUpdate(shipmentUpdate)
                     call.respond(HttpStatusCode.OK, "Shipment updated")
                 }
