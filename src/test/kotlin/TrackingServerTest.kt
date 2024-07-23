@@ -39,7 +39,6 @@ class TrackingServerIntegrationTest {
         }
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun `Server processes shipment update correctly`() = runBlocking {
         setUp()

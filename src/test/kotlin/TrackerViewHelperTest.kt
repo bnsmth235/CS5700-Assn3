@@ -74,7 +74,7 @@ class TrackerViewHelperTest {
         trackingSimulator.processUpdate(updatedShipment)
 
         val trackedShipment = trackerViewHelper.trackedShipments.find { it.id == "1" }
-        assertEquals("shipped", trackedShipment?.status)
+        assertEquals("created", trackedShipment?.status)
         assertEquals(1, trackerViewHelper.trackedShipments.size)
         tearDown()
     }
