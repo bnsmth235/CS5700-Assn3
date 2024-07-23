@@ -88,7 +88,7 @@ class ExpressShipment(
     }
 
     private fun validateDeliveryDate() {
-        val createdDate = convertLongToDateTime(updateHistory.first().split(" ")[8].toLong())
+        val createdDate = LocalDateTime.parse(updateHistory.last().split(" ")[7])
         if (expectedDeliveryDate.isAfter(createdDate.plusDays(3))) {
             notes.add("Abnormal: Express shipment expected delivery date is more than 3 days")
             notifyObservers()
@@ -114,7 +114,7 @@ class OvernightShipment(
     }
 
     private fun validateDeliveryDate() {
-        val createdDate = convertLongToDateTime(updateHistory.first().split(" ")[8].toLong())
+        val createdDate = LocalDateTime.parse(updateHistory.last().split(" ")[7])
         if (expectedDeliveryDate.isAfter(createdDate.plusDays(1))) {
             notes.add("Abnormal: Overnight shipment expected delivery date is more than 1 day")
             notifyObservers()
@@ -140,7 +140,7 @@ class BulkShipment(
     }
 
     private fun validateDeliveryDate() {
-        val createdDate = convertLongToDateTime(updateHistory.first().split(" ")[8].toLong())
+        val createdDate = LocalDateTime.parse(updateHistory.last().split(" ")[7])
         if (expectedDeliveryDate.isBefore(createdDate.plusDays(3))) {
             notes.add("Abnormal: Bulk shipment expected delivery date is less than 3 days")
             notifyObservers()
