@@ -1,9 +1,7 @@
-import java.time.Instant
 import java.time.LocalDateTime
-import java.time.ZoneId
 
 class ShipmentFactory {
-    fun createShipment(request: ShipmentUpdateRequest, update: CreatedUpdate): Shipment {
+    suspend fun createShipment(request: ShipmentUpdateRequest, update: CreatedUpdate): Shipment {
         return when (update.shipmentType) {
             "standard" -> StandardShipment(request.id, update.newStatus, "N/A", LocalDateTime.MIN)
             "express" -> ExpressShipment(request.id, update.newStatus, "N/A", LocalDateTime.MIN)
